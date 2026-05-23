@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components
+@implements IDisposable
 @inject blazor_frontend.Services.IAuthService AuthService
 @inject blazor_frontend.Services.AuthState AuthState
 @inject blazor_frontend.Services.ICategoryService CategoryService
@@ -63,15 +64,22 @@
         }
     }
 
-    private void KeepMegaMenu()
+    private async Task KeepMegaMenu()
     {
-        _megaMenuCts?.Cancel();
+        if (_megaMenuCts != null)
+        {
+            await _megaMenuCts.CancelAsync();
+        }
         _megaMenuOpen = true;
     }
 
     private async Task CloseMegaMenu()
     {
-        _megaMenuCts?.Cancel();
+        if (_megaMenuCts != null)
+        {
+            await _megaMenuCts.CancelAsync();
+            _megaMenuCts.Dispose();
+        }
         _megaMenuCts = new System.Threading.CancellationTokenSource();
         try
         {
@@ -79,7 +87,10 @@
             _megaMenuOpen = false;
             StateHasChanged();
         }
-        catch (TaskCanceledException) { }
+        catch (TaskCanceledException)
+        {
+            // Ignored because cancellation is expected when the menu is reopened
+        }
     }
 
     private void CloseAll()
@@ -105,6 +116,13 @@
             Nav.NavigateTo($"/products?q={Uri.EscapeDataString(headerSearchTerm)}");
             headerSearchTerm = "";
         }
+    }
+
+    public void Dispose()
+    {
+        AuthState.AuthStateChanged -= HandleAuthStateChanged;
+        _megaMenuCts?.Cancel();
+        _megaMenuCts?.Dispose();
     }
 }
 

@@ -59,7 +59,6 @@
     private string currentSessionId = "";
     private string guestId = ""; // UUID định danh thiết bị
     private string newMessage = "";
-    private string userAvatar = "";
     private List<ChatMessage> messages = new();
     
     protected override async Task OnInitializedAsync()
@@ -98,7 +97,6 @@
         try
         {
             // Ưu tiên lấy từ AuthState thay vì localStorage để tránh race condition khi vừa login
-            userAvatar = AuthState.AvatarUrl;
             var userId = AuthState.UserId;
             bool isAuthenticated = AuthState.IsAuthenticated;
 
