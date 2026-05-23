@@ -97,7 +97,6 @@
         try
         {
             // Ưu tiên lấy từ AuthState thay vì localStorage để tránh race condition khi vừa login
-            userAvatar = AuthState.AvatarUrl;
             var userId = AuthState.UserId;
             bool isAuthenticated = AuthState.IsAuthenticated;
 

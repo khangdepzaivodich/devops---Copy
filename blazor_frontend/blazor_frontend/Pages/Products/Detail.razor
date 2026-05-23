@@ -423,17 +423,16 @@
         {
             var clickedImg = GetThumbnails()[selectedMediaIndex];
             var variantWithThisImg = Variants.FirstOrDefault(v => string.Equals(v.Anh, clickedImg, StringComparison.OrdinalIgnoreCase));
-            if (variantWithThisImg != null && !string.IsNullOrEmpty(variantWithThisImg.Mau))
+            if (variantWithThisImg != null && 
+                !string.IsNullOrEmpty(variantWithThisImg.Mau) && 
+                !string.Equals(selectedColor, variantWithThisImg.Mau, StringComparison.OrdinalIgnoreCase))
             {
-                if (!string.Equals(selectedColor, variantWithThisImg.Mau, StringComparison.OrdinalIgnoreCase))
+                selectedColor = variantWithThisImg.Mau;
+                if (!AvailableSizes.Contains(selectedSize ?? string.Empty, StringComparer.OrdinalIgnoreCase))
                 {
-                    selectedColor = variantWithThisImg.Mau;
-                    if (!AvailableSizes.Contains(selectedSize ?? string.Empty, StringComparer.OrdinalIgnoreCase))
-                    {
-                        selectedSize = AvailableSizes.FirstOrDefault();
-                    }
-                    ValidateQuantity();
+                    selectedSize = AvailableSizes.FirstOrDefault();
                 }
+                ValidateQuantity();
             }
         }
 
@@ -628,14 +627,7 @@
             LuotBan: product.LuotBan);
     }
 
-    private static string FormatDiscountText(MaGiamGiaDto discount)
-        => discount.Loai == "PhanTram"
-            ? discount.SoTien.ToString("0") + "%"
-            : discount.SoTien.ToString("N0") + "đ";
-
-
-
-    private string FormatLuotBan(int count)
+    private static string FormatLuotBan(int count)
     {
         if (count >= 1000) return $"{count / 1000.0:0.#}k";
         return count.ToString();

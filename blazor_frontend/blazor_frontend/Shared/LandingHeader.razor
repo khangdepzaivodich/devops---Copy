@@ -64,16 +64,22 @@
         }
     }
 
-    private void KeepMegaMenu()
+    private async Task KeepMegaMenu()
     {
-        _megaMenuCts?.Cancel();
+        if (_megaMenuCts != null)
+        {
+            await _megaMenuCts.CancelAsync();
+        }
         _megaMenuOpen = true;
     }
 
     private async Task CloseMegaMenu()
     {
-        _megaMenuCts?.Cancel();
-        _megaMenuCts?.Dispose();
+        if (_megaMenuCts != null)
+        {
+            await _megaMenuCts.CancelAsync();
+            _megaMenuCts.Dispose();
+        }
         _megaMenuCts = new System.Threading.CancellationTokenSource();
         try
         {
@@ -81,7 +87,10 @@
             _megaMenuOpen = false;
             StateHasChanged();
         }
-        catch (TaskCanceledException) { }
+        catch (TaskCanceledException)
+        {
+            // Ignored because cancellation is expected when the menu is reopened
+        }
     }
 
     private void CloseAll()

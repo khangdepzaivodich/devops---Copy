@@ -788,8 +788,6 @@
     {
         editingId = Guid.Empty;
         editingNgayTao = null;
-        selectedMaLDM = Guid.Empty;
-        tempProductImage = string.Empty;
         editor = new SanPhamCreateRequest();
         editorVariants = new List<ChiTietSanPhamCreateRequest> 
         { 
@@ -816,7 +814,6 @@
     {
         editingId = it.MaSP;
         editingNgayTao = it.NgayTao;
-        selectedMaLDM = categories.FirstOrDefault(c => c.MaDM == it.MaDM)?.MaLDM ?? Guid.Empty;
         editor = new SanPhamCreateRequest { MaDM = it.MaDM, TenSP = it.TenSP, MoTa = it.MoTa };
         
         var cat = categories.FirstOrDefault(c => c.MaDM == it.MaDM);
@@ -1152,48 +1149,4 @@
         }
     }
 
-    private async Task HandleMainFileSelected(InputFileChangeEventArgs e)
-    {
-        Console.WriteLine("HandleMainFileSelected triggered");
-        var file = e.File;
-        if (file == null) 
-        {
-            Console.WriteLine("No file selected");
-            return;
-        }
-
-        try
-        {
-            Console.WriteLine($"Selected file: {file.Name}, Size: {file.Size}");
-            message = "Đang tải ảnh sản phẩm...";
-            isError = false;
-            StateHasChanged();
-
-            using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
-            var url = await productService.UploadPhotoAsync(stream, file.Name);
-            
-            if (!string.IsNullOrEmpty(url))
-            {
-                Console.WriteLine($"Upload success: {url}");
-                tempProductImage = url;
-                message = "Tải ảnh sản phẩm thành công!";
-            }
-            else
-            {
-                Console.WriteLine("Upload failed: No URL returned");
-                message = "Tải ảnh thất bại.";
-                isError = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Upload exception: {ex.Message}");
-            message = $"Lỗi: {ex.Message}";
-            isError = true;
-        }
-        finally
-        {
-            StateHasChanged();
-        }
-    }
 }
