@@ -1,0 +1,131 @@
+services:
+  # =========================
+  # MONGODB
+  # =========================
+  # IDENTITY SERVICE
+  # =========================
+  identity-service:
+    build:
+      context: ./Services/IdentityService
+    restart: always
+    ports:
+      - "7093:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${IDENTITY_DB}
+      JwtSettings__RsaPrivateKey: ${JWT_RSA_PRIVATE_KEY}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      SmtpSettings__Host: ${SMTP_HOST}
+      SmtpSettings__Port: ${SMTP_PORT}
+      SmtpSettings__Username: ${SMTP_USERNAME}
+      SmtpSettings__Password: ${SMTP_PASSWORD}
+      SmtpSettings__From: ${SMTP_FROM}
+      SmtpSettings__FromDisplayName: ${SMTP_FROM_NAME}
+      CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
+      CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+  # =========================
+  # CATALOG SERVICE
+  # =========================
+  catalog-service:
+    build:
+      context: ./Services/CatalogService
+    restart: always
+    ports:
+      - "7103:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${CATALOG_DB}
+      CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
+      CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+  # =========================
+  # ORDERING SERVICE
+  # =========================
+  ordering-service:
+    build:
+      context: ./Services/OrderingService
+    restart: always
+    ports:
+      - "7076:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${ORDERING_DB}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      ApiSettings__CatalogUrl: "http://catalog-service:8080"
+      ApiSettings__DiscountUrl: "http://discount-service:8080"
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+  # =========================
+  # BASKET SERVICE (REDIS)
+  # =========================
+  basket-service:
+    build:
+      context: ./Services/BasketService
+    restart: always
+    ports:
+      - "7021:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Redis__ConnectionString: ${REDIS_CONNECTION}
+      ApiSettings__CatalogUrl: "http://catalog-service:8080"
+      ApiSettings__IdentityUrl: "http://identity-service:8080"
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+  # =========================
+  # DISCOUNT SERVICE (MONGO)
+  # =========================
+  discount-service:
+    build:
+      context: ./Services/DiscountService
+    restart: always
+    ports:
+      - "7002:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DiscountDatabase__ConnectionString: ${MONGO_CONNECTION_ATLAS}
+      DiscountDatabase__DatabaseName: ${MONGO_DB_DISCOUNT}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+  # =========================
+  # CHAT SERVICE (MONGO + REDIS)
+  # =========================
+  chat-service:
+    build:
+      context: ./Services/ChatService
+    restart: always
+    ports:
+      - "7229:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Mongo__ConnectionString: ${MONGO_CONNECTION_ATLAS}
+      Mongo__Database: ${MONGO_DB_CHAT}
+      Redis__ConnectionString: ${REDIS_CONNECTION}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
+    networks:
+      - backend
+
+# =========================
+# NETWORKS
+# =========================
+networks:
+  backend:
+
