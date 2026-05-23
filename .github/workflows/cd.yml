@@ -145,7 +145,7 @@ jobs:
   deploy-production:
     name: CD - Deploy Production
     runs-on: ubuntu-latest
-    # needs: deploy-staging
+    needs: deploy-staging
     environment: 
       name: production
       # Note: Manual approval should be enabled in GitHub Settings -> Environments -> production
