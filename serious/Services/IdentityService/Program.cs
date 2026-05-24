@@ -147,8 +147,6 @@ app.UseRouting();
 
 
 app.UseAuthorization();
-
-//prometheus
 app.UseHttpMetrics();
 app.MapMetrics();
 app.MapControllers();

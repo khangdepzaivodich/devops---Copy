@@ -119,7 +119,6 @@ app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
-//prometheus
 app.UseHttpMetrics();
 app.MapMetrics();
 app.MapControllers();
