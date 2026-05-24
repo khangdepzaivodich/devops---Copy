@@ -1,0 +1,109 @@
+name: Monitoring CD Pipeline
+
+on:
+  push:
+    branches: [ "master", "main" ]
+    paths:
+      - 'monitoring/**'
+      - '.github/workflows/monitoring-cd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: monitoring-cd-pipeline
+  cancel-in-progress: true
+
+jobs:
+  deploy-monitoring-staging:
+    name: CD - Deploy Monitoring Stack (Staging)
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy monitoring folder to Azure VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          source: "monitoring/*"
+          target: "~/deploy-monitoring/"
+
+      - name: Deploy monitoring stack via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            sudo chmod 644 /etc/rancher/k3s/k3s.yaml || true
+            cd ~/deploy-monitoring/monitoring
+
+            # Inject Discord webhook URL
+            sed -i "s|DISCORD_WEBHOOK_PLACEHOLDER|${{ secrets.DISCORD_WEBHOOK }}|g" k8s/01-configmaps.yaml
+
+            # Inject Grafana credentials
+            sed -i "s|GRAFANA_ADMIN_PASSWORD_PLACEHOLDER|${{ secrets.GRAFANA_ADMIN_PASSWORD }}|g" k8s/02-deployments.yaml
+            sed -i "s|GRAFANA_ADMIN_USER_PLACEHOLDER|${{ secrets.GRAFANA_ADMIN_USER }}|g" k8s/02-deployments.yaml
+
+            chmod +x deploy-monitoring.sh
+            ./deploy-monitoring.sh
+      - name: Discord Notification
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          title: "Monitoring Stack Deployment (Staging)"
+          description: "Prometheus + Grafana + Loki deployed to Staging"
+          color: 0x00bfff
+
+  deploy-monitoring-production:
+    name: CD - Deploy Monitoring Stack (Production)
+    runs-on: ubuntu-latest
+    needs: deploy-monitoring-staging
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy monitoring folder to Azure VM (Production)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          source: "monitoring/*"
+          target: "~/deploy-monitoring-production/"
+
+      - name: Deploy monitoring stack via SSH (Production)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            sudo chmod 644 /etc/rancher/k3s/k3s.yaml || true
+            cd ~/deploy-monitoring-production/monitoring
+
+            # Inject Discord webhook URL
+            sed -i "s|DISCORD_WEBHOOK_PLACEHOLDER|${{ secrets.DISCORD_WEBHOOK }}|g" k8s/01-configmaps.yaml
+
+            # Inject Grafana credentials
+            sed -i "s|GRAFANA_ADMIN_PASSWORD_PLACEHOLDER|${{ secrets.GRAFANA_ADMIN_PASSWORD }}|g" k8s/02-deployments.yaml
+            sed -i "s|GRAFANA_ADMIN_USER_PLACEHOLDER|${{ secrets.GRAFANA_ADMIN_USER }}|g" k8s/02-deployments.yaml
+
+            chmod +x deploy-monitoring.sh
+            ./deploy-monitoring.sh
+      - name: Discord Notification
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          title: "Monitoring Stack Deployment (Production)"
+          description: "Prometheus + Grafana + Loki deployed to Production"
+          color: 0x00bfff
