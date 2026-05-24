@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using System.Text;
 using ChatService;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,10 +97,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.MapControllers();
 

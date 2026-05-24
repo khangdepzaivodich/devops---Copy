@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,8 +145,10 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseRouting();
 
-app.UseAuthorization();
 
+app.UseAuthorization();
+app.UseHttpMetrics();
+app.MapMetrics();
 app.MapControllers();
 
 app.Run();
