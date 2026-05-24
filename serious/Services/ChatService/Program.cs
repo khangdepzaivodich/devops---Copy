@@ -97,15 +97,14 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-//prometheus
-app.UseRouting();
-app.UseHttpMetrics();
-app.MapMetrics();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+//prometheus
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.MapControllers();
 

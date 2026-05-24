@@ -144,13 +144,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseRouting();
-//prometheus
-app.UseHttpMetrics();
-app.MapMetrics();
 
 
 app.UseAuthorization();
 
+//prometheus
+app.UseHttpMetrics();
+app.MapMetrics();
 app.MapControllers();
 
 app.Run();

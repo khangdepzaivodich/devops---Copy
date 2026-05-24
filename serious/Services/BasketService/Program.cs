@@ -92,15 +92,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-//prometheus
-app.UseRouting();
-app.UseHttpMetrics();   // Tự động track HTTP request metrics
-app.MapMetrics(); 
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+//prometheus
+app.UseHttpMetrics();   // Tự động track HTTP request metrics
+app.MapMetrics(); 
+
 app.MapControllers();
 
 app.Run();
